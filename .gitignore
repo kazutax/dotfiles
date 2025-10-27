@@ -1,0 +1,9 @@
+# Neovim build & cache
+.cache/
+.sessions/
+.swap/
+.undo/
+shada/
+plugin/packer_compiled.lua
+lazy-lock.json
+
