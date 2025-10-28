@@ -6,6 +6,10 @@
 ## 0. 前提
 
 - macOS（Apple Silicon / Intel どちらでもOK）
+- Xcode Command Line Tools  
+  ```bash
+  xcode-select --install
+  ```
 - Homebrew  
   ```bash
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -25,11 +29,11 @@ brew install git neovim ripgrep fd
 ```bash
 mkdir -p ~/git
 cd ~/git
-git clone https://github.com/<YOUR_GITHUB_USERNAME>/dotfiles.git
+git clone https://github.com/kazutax/dotfiles.git
 ```
 
 > SSH を使う場合：  
-> `git clone git@github.com:<YOUR_GITHUB_USERNAME>/dotfiles.git`
+> `git clone git@github.com:kazutax/dotfiles.git`
 
 ## 3. シンボリックリンクを張る
 
@@ -122,6 +126,56 @@ Neovim を起動して Lazy.nvim が自動セットアップされるのを確�
   git commit -m "tweak: update nvim config"
   git push
   ```
+
+---
+
+## 11. Nerd Font の導入（nvim-tree アイコン対策）
+
+`nvim-tree` や `telescope` のアイコン（フォルダ、Git ステータスなど）が表示されない場合、  
+**Nerd Font（アイコン付きフォント）**を導入する必要があります。
+
+### 🔹 1. Nerd Font のインストール（Homebrew 推奨）
+
+```bash
+brew tap homebrew/cask-fonts
+brew install --cask font-jetbrains-mono-nerd-font
+```
+
+> JetBrains Mono 以外にも以下のフォントが人気です：
+> - `font-hack-nerd-font`
+> - `font-fira-code-nerd-font`
+> - `font-cascadia-code-nerd-font`
+
+### 🔹 2. 端末（iTerm2 など）の設定
+
+1. iTerm2 → Preferences → Profiles → **Text** を開く  
+2. 「Font」欄でインストールした Nerd Font（例: *JetBrainsMono Nerd Font*）を選択  
+3. 「Use built-in Powerline glyphs」を **オフ** にする  
+4. ターミナルを再起動して反映を確認  
+
+### 🔹 3. Neovim 側の確認
+
+Neovim の設定ファイルにすでに以下が入っていることを確認します（通常 `renderer.icons` 内）。
+
+```lua
+renderer = {
+  icons = {
+    show = { file = true, folder = true, folder_arrow = true, git = true },
+  },
+}
+```
+
+この設定があって Nerd Font が有効なら、`nvim-tree` に以下のようなアイコンが表示されます。
+
+📁 ``（フォルダ）  
+📄 ``（ファイル）  
+🔀 ``（Git merge） など
+
+---
+
+> 💡 **補足**
+> - macOS の Font Book アプリで「Nerd Font」が有効化されているか確認してください。  
+> - 変更が反映されない場合は、iTerm2 を完全に終了 → 再起動で直ることがあります。
 
 ---
 
