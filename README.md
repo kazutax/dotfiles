@@ -1,35 +1,19 @@
-# dotfiles (macOS)
+# 🧰 dotfiles setup guide
 
-個人用のシェル・Neovim・Zsh の設定一式。Git 管理したものをそのまま各マシンにリンクして使う想定。
-
----
-
-## 1. 前提
-
-- macOS (Apple Silicon / Intel)
-- Xcode Command Line Tools
-  ```bash
-  xcode-select --install
-  ```
-- Homebrew
-  ```bash
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  ```
+## 1. 前提環境
+- macOS
+- Homebrew インストール済み
+- zsh を利用（bash は非対応）
 
 ---
 
-## 2. 必要な Homebrew
-
+## 2. 必要なフォント
 ```bash
-brew install git neovim ripgrep fd fzf
 brew tap homebrew/cask-fonts
 brew install --cask font-meslo-lg-nerd-font
 ```
 
-- `neovim` … メイン
-- `ripgrep` / `fd` … Telescope で使うので必須
-- `fzf` … Zsh からも使う
-- フォントは **MesloLGM Nerd Font** を想定（iTerm2 / Terminal のフォントで指定する）
+iTerm2 / Alacritty / Warp などのターミナルで **MesloLGL Nerd Font** を指定してください。
 
 ---
 
@@ -38,92 +22,100 @@ brew install --cask font-meslo-lg-nerd-font
 ```bash
 mkdir -p ~/Git
 cd ~/Git
-git clone https://github.com/kazutax/dotfiles.git
-cd dotfiles
 
-# oh-my-zsh をサブモジュールで取得
+# すべてのサブモジュールを含めてクローン
+git clone --recursive https://github.com/kazutax/dotfiles.git
+cd dotfiles
+```
+
+このリポジトリには以下のサブモジュールが含まれます：
+
+- `.oh-my-zsh` … oh-my-zsh 本体  
+- `zsh/custom/plugins/zsh-autosuggestions` … コマンド補完  
+- `zsh/custom/plugins/zsh-syntax-highlighting` … 構文ハイライト  
+
+他マシンでクローン後、サブモジュールを更新するには：
+
+```bash
 git submodule update --init --recursive
 ```
 
-※ `.oh-my-zsh` はリポジトリ直下にサブモジュールとして入れてあるので、↑を必ず実行すること。
-
 ---
 
-## 4. リンクするもの
-
-基本は「ホームディレクトリにあるものが Git 配下を見る」ようにする。
+## 4. シンボリックリンク設定
 
 ```bash
-# Neovim
-mkdir -p ~/.config
-ln -s ~/Git/dotfiles/.config/nvim ~/.config/nvim
-
-# Zsh (既存がある場合は退避)
-[ -f ~/.zshrc ] && mv ~/.zshrc ~/.zshrc.bak.$(date +%Y%m%d-%H%M%S)
 cat <<'EOF' > ~/.zshrc
-# dotfiles 版
-export DOTFILES_DIR="$HOME/Git/dotfiles"
-export ZSH="$DOTFILES_DIR/.oh-my-zsh"
-source "$DOTFILES_DIR/zsh/common.zsh"
+# load from dotfiles
+if [ -f "$HOME/Git/dotfiles/zsh/common.zsh" ]; then
+  source "$HOME/Git/dotfiles/zsh/common.zsh"
+fi
 EOF
 ```
 
-これで `~/.zshrc` は Git 管理された `zsh/common.zsh` を読む。`oh-my-zsh` もリポジトリ内を見に行く。
-
----
-
-## 5. Neovim 初回起動
-
-1. `nvim` を起動
-2. Lazy.nvim が自動で立ち上がるのでインストールを待つ
-3. 終わったら以下を実行
-
-```vim
-:Lazy sync
-:TSUpdate
-```
-
-Treesitter のダウンロードまで終われば OK。
-
----
-
-## 6. ターミナルのフォント設定
-
-1. iTerm2 → Profiles → Text
-2. Font: **MesloLGM Nerd Font** を選択
-3. Powerline/glyph のダブり表示があるときは「Use built-in Powerline glyphs」をオフ
-4. 再起動で Neovim のアイコンが全部出る
-
-※ 他の端末でも同じフォントを入れれば崩れない。
-
----
-
-## 7. よく変えるところ
-
-- `~/.config/nvim/lua/plugins/` … プラグイン追加・トグル
-- `zsh/custom/` … 自分用テーマ・補完など
-- `.gitignore` … 各端末で生成されるファイルを増やしたいとき
-
-変更したら普通に Git でコミット:
+反映して確認：
 
 ```bash
+exec zsh
+```
+
+---
+
+## 5. プロンプトテーマ
+
+- テーマ: `cobalt2`
+- 定義場所: `zsh/custom/themes/cobalt2.zsh-theme`
+
+見た目が青基調のハイコントラストスタイルになればOKです。
+
+---
+
+## 6. Neovim 設定
+
+設定は `~/.config/nvim` 以下に配置。  
+初期設定は `init.lua` と `lua/` ディレクトリ配下で管理。
+
+---
+
+## 7. よくあるコマンド
+
+### サブモジュールを最新化
+```bash
+git submodule update --remote --merge
+```
+
+### dotfiles の更新を反映
+```bash
 cd ~/Git/dotfiles
-git status
-git add ...
-git commit -m "update: nvim/zsh config"
-git push
+git pull --recurse-submodules
 ```
 
 ---
 
 ## 8. よくあるエラー
 
-- **アイコンが□になる** → フォントが MesloLGM Nerd Font になってない
-- **`.oh-my-zsh` が無いと言われる** → `git submodule update --init --recursive` を忘れている
-- **Neovim のツリーが開かない** → `ripgrep` / `fd` のインストール確認
+| 症状 | 対処 |
+|------|------|
+| **アイコンが□になる** | フォントが MesloLGM Nerd Font になっていない |
+| **`.oh-my-zsh` が無いと言われる** | `git submodule update --init --recursive` を実行 |
+| **プラグインが効かない** | `zsh/custom/plugins` のサブモジュール更新を確認 |
+| **テーマが読み込まれない** | `$ZSH` パスが `~/Git/dotfiles/.oh-my-zsh` か確認 |
+| **Neovim のツリーが開かない** | `ripgrep` / `fd` が未インストール → `brew install ripgrep fd` |
 
 ---
 
-## 9. ライセンスとか
+## 9. 更新時の注意
 
-個人用です。会社のトークンや固有のパスは入れないでください。
+- `.oh-my-zsh` や `zsh/custom/plugins` はサブモジュールなので、`git pull` だけでは更新されません。
+- 変更を試す前に `.zshrc` のバックアップを取っておくと安全です：
+
+```bash
+cp ~/.zshrc ~/.zshrc.bak.$(date +%Y%m%d-%H%M%S)
+```
+
+---
+
+## 10. ライセンスとか
+
+このリポジトリは **個人用 dotfiles** です。  
+社内トークンや固有のパスなど、機密情報は含めないようにしてください。
