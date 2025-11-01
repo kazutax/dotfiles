@@ -1,9 +1,28 @@
-# Neovim build & cache
-.cache/
-.sessions/
-.swap/
-.undo/
-shada/
-plugin/packer_compiled.lua
-lazy-lock.json
+# macOS 系
+.DS_Store
+
+# Neovim
+.config/nvim/.DS_Store
+.config/nvim/shada/
+.config/nvim/.cache/
+.config/nvim/.sessions/
+.config/nvim/.swap/
+.config/nvim/.undo/
+.config/nvim/lazy-lock.json
+
+
+# Lazy.nvim lock file（共有する場合はコメントアウト）
+# .config/nvim/lazy-lock.json
+
+# oh-my-zsh のキャッシュ・ログ（submodule には不要）
+.oh-my-zsh/cache/
+.oh-my-zsh/log/
+.oh-my-zsh/logs/
+.oh-my-zsh/**/*.zwc
+
+# Zsh
+zsh/.DS_Store
+
+# Git 自体
+.gitmodules
 
