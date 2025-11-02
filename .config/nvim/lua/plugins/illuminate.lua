@@ -19,15 +19,6 @@ return {
       },
       under_cursor = true, -- カーソル下もハイライト
     })
-
-    -- 🧭 移動ショートカット（便利！）
-    vim.keymap.set("n", "<A-n>", function()
-      require("illuminate").next_reference({ wrap = true })
-    end, { desc = "Next reference (same word)" })
-
-    vim.keymap.set("n", "<A-p>", function()
-      require("illuminate").next_reference({ reverse = true, wrap = true })
-    end, { desc = "Prev reference (same word)" })
   end,
 }
 

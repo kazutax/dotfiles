@@ -7,6 +7,7 @@ DOTFILES_DIR="$HOME/Git/dotfiles"
 
 # oh-my-zsh (サブモジュール)
 export ZSH="$DOTFILES_DIR/.oh-my-zsh"
+export ZSH_CUSTOM="$DOTFILES_DIR/zsh/custom"
 ZSH_THEME="cobalt2"
 
 # oh-my-zsh 標準プラグイン

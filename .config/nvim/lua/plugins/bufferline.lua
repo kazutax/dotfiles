@@ -3,18 +3,17 @@ return {
   version = "*",
   dependencies = {
     "nvim-tree/nvim-web-devicons",
-    "folke/tokyonight.nvim", -- ★ Tokyonight を依存にして順序を保証
+    -- "folke/tokyonight.nvim", -- ← あってもいいけど必須じゃないようにした
   },
   event = "VeryLazy",
   config = function()
-    -- --- Tokyonight 由来の配色を安全に取得 -----------------------------
+    -- Tokyonight があれば色をもらう（なくても落ちない）
     local highlights = {}
     local ok_groups, groups = pcall(require, "tokyonight.groups")
     if ok_groups then
       local ok_cfg, cfg = pcall(require, "tokyonight.config")
-      -- Tokyonight の options が未初期化でも落ちないようにフォールバック
       local opts = (ok_cfg and cfg and cfg.options) or {
-        style = "storm",       -- ★ あなたのメインが storm なので既定を storm に
+        style = "storm",
         transparent = true,
         terminal_colors = true,
       }
@@ -23,19 +22,32 @@ return {
         highlights = hl.bufferline
       end
     end
-    -- -------------------------------------------------------------------
 
     require("bufferline").setup({
       options = {
-        mode = "buffers", -- "tabs" も可
+        mode = "buffers",
         numbers = "none",
         diagnostics = "nvim_lsp",
-        separator_style = "slant",
+
+        -- ★ VSCode/BigQuery っぽくフラットに
+        separator_style = "thin", -- ← "none" でもOK
+        show_buffer_close_icons = false, -- 通常は出さず
         show_close_icon = false,
-        show_buffer_close_icons = true,
+
+        -- ★ タブにマウス乗せたら ✕ を出す
+        hover = {
+          enabled = true,
+          delay = 150,
+          reveal = { "close" },
+        },
+
         always_show_bufferline = true,
         color_icons = true,
-        indicator = { style = "underline" },
+        indicator = {
+          style = "underline", -- VSCodeっぽい「下線だけ」
+        },
+
+        -- 左に NvimTree があるときの余白
         offsets = {
           {
             filetype = "NvimTree",
@@ -44,11 +56,15 @@ return {
             separator = true,
           },
         },
+
+        -- ちょいコンパクトにしてVSCode寄せ
+        max_name_length = 22,
+        tab_size = 18,
       },
-      highlights = highlights, -- Tokyonight の配色を適用（安全に）
+      highlights = highlights,
     })
 
-    -- お好みのキーバインド
+    --  移動ショートカット
     vim.keymap.set("n", "<S-l>", "<cmd>BufferLineCycleNext<CR>", { desc = "Next buffer" })
     vim.keymap.set("n", "<S-h>", "<cmd>BufferLineCyclePrev<CR>", { desc = "Prev buffer" })
     vim.keymap.set("n", "<leader>bd", "<cmd>bdelete<CR>", { desc = "Close buffer" })
