@@ -1,0 +1,14 @@
+{
+  "name": "custom-snippets",
+  "displayName": "Custom Snippets",
+  "description": "Custom VSCode snippets for Neovim",
+  "version": "0.0.1",
+  "contributes": {
+    "snippets": [
+      {
+        "language": "sql",
+        "path": "./sql.json"
+      }
+    ]
+  }
+}

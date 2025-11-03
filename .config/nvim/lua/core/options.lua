@@ -17,7 +17,7 @@ o.tabstop = 4
 o.shiftwidth = 4
 o.expandtab = true
 o.splitright = true
-o.splitbelow = false
+o.splitbelow = true
 
 -- 不可視文字を表示
 o.list = true

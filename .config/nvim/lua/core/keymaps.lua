@@ -2,6 +2,31 @@ vim.g.mapleader = " "
 local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
 
+map("n", "<leader>t", function()
+  -- 現在の作業ディレクトリを取得
+  local cwd = vim.fn.getcwd()
+  -- 横分割
+  vim.cmd("sp")
+  -- 下に移動
+  vim.cmd("wincmd J")
+  -- 高さを設定
+  vim.cmd("res 10")
+  -- ターミナルを開く（CWDを保持）
+  vim.fn.termopen(vim.o.shell, {
+    cwd = cwd,
+  })
+  -- ターミナルバッファの設定
+  vim.cmd("setlocal noequalalways")
+  -- ターミナルが開いた後に確実にターミナルモードに入る（オートコマンドの補完）
+  vim.defer_fn(function()
+    local buf = vim.api.nvim_get_current_buf()
+    if vim.bo[buf].buftype == "terminal" then
+      vim.cmd("startinsert")
+    end
+  end, 20)
+end, { desc = "Open Terminal below" })
+map('t', '<Esc><Esc>', [[<C-\><C-n>:q<CR>]], { noremap = true, silent = true, desc = "Close Terminal" })
+
 map("n", "<leader>w", "<cmd>w<CR>", opts)
 map("n", "<leader>q", "<cmd>q<CR>", opts)
 map("n", "<leader>h", "<C-w>h", opts)

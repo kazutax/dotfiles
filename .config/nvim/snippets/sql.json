@@ -1,0 +1,17 @@
+{
+  "SELECT with JOIN": {
+    "prefix": "select_join",
+    "body": [
+      "select",
+      "  ${1:a}.*,",
+      "  ${2:b}.${3:column}",
+      "from",
+      "  `${4:table_a}` ${1:a}",
+      "  inner join `${5:table_b}` ${2:b}",
+      "    on ${1:a}.${6:id} = ${2:b}.${7:id}",
+      "where",
+      "  ${8:1 = 1};"
+    ],
+    "description": "SELECT statement with INNER JOIN"
+  }
+}
