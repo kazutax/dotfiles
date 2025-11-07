@@ -27,10 +27,56 @@ return {
       local function reload_snippets_for_filetype(ft)
         if ft and ft ~= "" then
           pcall(function()
-            -- 該当ファイルタイプのスニペットをクリア
-            if ls.snippets[ft] then
-              ls.snippets[ft] = {}
+            -- 該当ファイルタイプのスニペットを完全にクリア
+            -- まず、カスタムスニペットパスから読み込まれたスニペットを特定して削除
+            local snippet_collection = require("luasnip.session.snippet_collection")
+            local Data = require("luasnip.loaders.data")
+            
+            -- カスタムスニペットパスから読み込まれたスニペットのキーを削除
+            if snippet_collection._snippets and snippet_collection._snippets[ft] then
+              local keys_to_remove = {}
+              for key, _ in pairs(snippet_collection._snippets[ft]) do
+                if key and string.find(tostring(key), custom_snippets_path, 1, true) then
+                  table.insert(keys_to_remove, key)
+                end
+              end
+              for _, key in ipairs(keys_to_remove) do
+                snippet_collection._snippets[ft][key] = nil
+              end
             end
+            
+            -- スニペットテーブルを再構築（カスタムスニペットを除く）
+            if ls.snippets[ft] then
+              local new_snippets = {}
+              if snippet_collection._snippets and snippet_collection._snippets[ft] then
+                for key, snippets in pairs(snippet_collection._snippets[ft]) do
+                  if snippets then
+                    for _, snippet in ipairs(snippets) do
+                      table.insert(new_snippets, snippet)
+                    end
+                  end
+                end
+              end
+              ls.snippets[ft] = new_snippets
+            end
+            
+            -- キャッシュからも削除（該当パスのみ）
+            if Data.vscode_cache then
+              -- キャッシュの無効化（該当パスのみ）
+              local cache_path = custom_snippets_path .. "/" .. ft .. ".json"
+              if Data.vscode_cache._cache then
+                Data.vscode_cache._cache[cache_path] = nil
+              end
+              -- パス全体もクリア
+              if Data.vscode_cache._cache then
+                for path, _ in pairs(Data.vscode_cache._cache) do
+                  if string.find(tostring(path), custom_snippets_path, 1, true) then
+                    Data.vscode_cache._cache[path] = nil
+                  end
+                end
+              end
+            end
+            
             -- スニペットを再読み込み
             loader.load({ paths = { custom_snippets_path }, include = { ft } })
           end)
@@ -46,9 +92,8 @@ return {
       vim.api.nvim_create_autocmd("FileType", {
         pattern = "*",
         callback = function()
-          pcall(function()
-            loader.load({ paths = { custom_snippets_path } })
-          end)
+          local ft = vim.bo.filetype
+          reload_snippets_for_filetype(ft)
         end,
       })
       
@@ -66,11 +111,7 @@ return {
         pattern = "*",
         callback = function()
           local ft = vim.bo.filetype
-          if ft and ft ~= "" then
-            pcall(function()
-              loader.load({ paths = { custom_snippets_path } })
-            end)
-          end
+          reload_snippets_for_filetype(ft)
         end,
       })
       
@@ -104,8 +145,14 @@ return {
       
       -- デバッグ用: スニペットが読み込まれたか確認
       vim.api.nvim_create_user_command("ReloadSnippets", function()
-        loader.load({ paths = { custom_snippets_path } })
-        print("Snippets reloaded from: " .. custom_snippets_path)
+        local ft = vim.bo.filetype
+        if ft and ft ~= "" then
+          reload_snippets_for_filetype(ft)
+          print("Snippets reloaded for " .. ft .. " from: " .. custom_snippets_path)
+        else
+          loader.load({ paths = { custom_snippets_path } })
+          print("Snippets reloaded from: " .. custom_snippets_path)
+        end
       end, {})
       
       -- デバッグ用: スニペット一覧を表示
@@ -285,15 +332,53 @@ return {
                   local ft = vim.bo.filetype
                   -- スニペットをクリアしてから再読み込み
                   if ft and ft ~= "" then
+                    -- reload_snippets_for_filetype関数を呼び出す
+                    -- ただし、このスコープでは関数にアクセスできないので、直接処理する
                     pcall(function()
                       local luasnip = require("luasnip")
-                      -- 該当ファイルタイプのスニペットをクリア
-                      if luasnip.snippets[ft] then
-                        luasnip.snippets[ft] = {}
-                      end
-                      -- スニペットを再読み込み
                       local loader = require("luasnip.loaders.from_vscode")
+                      local snippet_collection = require("luasnip.session.snippet_collection")
+                      local Data = require("luasnip.loaders.data")
                       local custom_snippets_path = vim.fn.stdpath("config") .. "/snippets"
+                      
+                      -- カスタムスニペットパスから読み込まれたスニペットのキーを削除
+                      if snippet_collection._snippets and snippet_collection._snippets[ft] then
+                        local keys_to_remove = {}
+                        for key, _ in pairs(snippet_collection._snippets[ft]) do
+                          if key and string.find(tostring(key), custom_snippets_path, 1, true) then
+                            table.insert(keys_to_remove, key)
+                          end
+                        end
+                        for _, key in ipairs(keys_to_remove) do
+                          snippet_collection._snippets[ft][key] = nil
+                        end
+                      end
+                      
+                      -- スニペットテーブルを再構築
+                      if luasnip.snippets[ft] then
+                        local new_snippets = {}
+                        if snippet_collection._snippets and snippet_collection._snippets[ft] then
+                          for key, snippets in pairs(snippet_collection._snippets[ft]) do
+                            if snippets then
+                              for _, snippet in ipairs(snippets) do
+                                table.insert(new_snippets, snippet)
+                              end
+                            end
+                          end
+                        end
+                        luasnip.snippets[ft] = new_snippets
+                      end
+                      
+                      -- キャッシュからも削除
+                      if Data.vscode_cache and Data.vscode_cache._cache then
+                        for path, _ in pairs(Data.vscode_cache._cache) do
+                          if string.find(tostring(path), custom_snippets_path, 1, true) then
+                            Data.vscode_cache._cache[path] = nil
+                          end
+                        end
+                      end
+                      
+                      -- スニペットを再読み込み
                       loader.load({ paths = { custom_snippets_path }, include = { ft } })
                     end)
                   end
