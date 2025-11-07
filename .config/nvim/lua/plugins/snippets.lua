@@ -79,6 +79,28 @@ return {
         end,
       })
       
+      -- テキスト変更時にスニペットを再読み込み（スニペット使用後も候補を復元）
+      vim.api.nvim_create_autocmd("TextChangedI", {
+        pattern = "*",
+        callback = function()
+          local ft = vim.bo.filetype
+          if ft and ft ~= "" then
+            -- デバウンス処理（連続した変更を抑制）
+            local timer = vim.loop.new_timer()
+            timer:start(200, 0, function()
+              timer:stop()
+              timer:close()
+              vim.schedule(function()
+                pcall(function()
+                  -- ファイルタイプを明示的に指定して読み込む
+                  loader.load({ paths = { custom_snippets_path }, include = { ft } })
+                end)
+              end)
+            end)
+          end
+        end,
+      })
+      
       -- デバッグ用: スニペットが読み込まれたか確認
       vim.api.nvim_create_user_command("ReloadSnippets", function()
         loader.load({ paths = { custom_snippets_path } })
@@ -246,18 +268,6 @@ return {
                       if luasnip.expand_or_jumpable() then
                         luasnip.expand_or_jump()
                       end
-                      
-                      -- スニペット展開後に、スニペットを再読み込みして候補を復元
-                      vim.defer_fn(function()
-                        local ft = vim.bo.filetype
-                        if ft and ft ~= "" then
-                          pcall(function()
-                            local loader = require("luasnip.loaders.from_vscode")
-                            local custom_snippets_path = vim.fn.stdpath("config") .. "/snippets"
-                            loader.load({ paths = { custom_snippets_path }, include = { ft } })
-                          end)
-                        end
-                      end, 100)
                     end, 50)
                   end, 20)
                 else
@@ -266,20 +276,21 @@ return {
                     if luasnip.expand_or_jumpable() then
                       luasnip.expand_or_jump()
                     end
-                    
-                    -- スニペット展開後に、スニペットを再読み込みして候補を復元
-                    vim.defer_fn(function()
-                      local ft = vim.bo.filetype
-                      if ft and ft ~= "" then
-                        pcall(function()
-                          local loader = require("luasnip.loaders.from_vscode")
-                          local custom_snippets_path = vim.fn.stdpath("config") .. "/snippets"
-                          loader.load({ paths = { custom_snippets_path }, include = { ft } })
-                        end)
-                      end
-                    end, 100)
                   end, 10)
                 end
+                
+                -- スニペット展開後に、スニペットを再読み込みして候補を復元（確実に実行されるように）
+                vim.defer_fn(function()
+                  local ft = vim.bo.filetype
+                  if ft and ft ~= "" then
+                    pcall(function()
+                      local loader = require("luasnip.loaders.from_vscode")
+                      local custom_snippets_path = vim.fn.stdpath("config") .. "/snippets"
+                      -- ファイルタイプを明示的に指定して読み込む
+                      loader.load({ paths = { custom_snippets_path }, include = { ft } })
+                    end)
+                  end
+                end, 200)
               end, 10)
             end
           end)
