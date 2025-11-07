@@ -137,7 +137,23 @@ return {
           end
         end, { "i", "s" }),
         
-        ["<CR>"] = cmp.mapping.confirm({ select = true }),
+        ["<CR>"] = cmp.mapping(function(fallback)
+          if cmp.visible() then
+            -- 補完メニューが表示されている場合
+            local entry = cmp.get_selected_entry()
+            if entry then
+              -- 候補が選択されている場合、確定
+              cmp.confirm({ select = false })
+            else
+              -- 候補が選択されていない場合、閉じて通常の改行
+              cmp.close()
+              fallback()
+            end
+          else
+            -- 補完メニューが表示されていない場合、通常のEnter動作
+            fallback()
+          end
+        end, { "i", "s" }),
       })
       
       cmp.setup(opts)
