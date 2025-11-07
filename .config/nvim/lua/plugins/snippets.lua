@@ -45,7 +45,8 @@ return {
           local ft = vim.bo.filetype
           if ft and ft ~= "" then
             pcall(function()
-              loader.load({ paths = { custom_snippets_path } })
+              -- ファイルタイプを明示的に指定して読み込む
+              loader.load({ paths = { custom_snippets_path }, include = { ft } })
             end)
           end
         end,
@@ -59,6 +60,20 @@ return {
           if ft and ft ~= "" then
             pcall(function()
               loader.load({ paths = { custom_snippets_path } })
+            end)
+          end
+        end,
+      })
+      
+      -- バッファを読み込んだ後にもスニペットを読み込む（ファイルタイプが確実に設定された後）
+      vim.api.nvim_create_autocmd("BufReadPost", {
+        pattern = "*",
+        callback = function()
+          local ft = vim.bo.filetype
+          if ft and ft ~= "" then
+            pcall(function()
+              -- ファイルタイプを明示的に指定して読み込む
+              loader.load({ paths = { custom_snippets_path }, include = { ft } })
             end)
           end
         end,
