@@ -38,6 +38,32 @@ return {
         end,
       })
       
+      -- バッファに入ったときにもスニペットを読み込む（再オープン時も対応）
+      vim.api.nvim_create_autocmd("BufEnter", {
+        pattern = "*",
+        callback = function()
+          local ft = vim.bo.filetype
+          if ft and ft ~= "" then
+            pcall(function()
+              loader.load({ paths = { custom_snippets_path } })
+            end)
+          end
+        end,
+      })
+      
+      -- バッファを読み込んだときにもスニペットを読み込む
+      vim.api.nvim_create_autocmd("BufRead", {
+        pattern = "*",
+        callback = function()
+          local ft = vim.bo.filetype
+          if ft and ft ~= "" then
+            pcall(function()
+              loader.load({ paths = { custom_snippets_path } })
+            end)
+          end
+        end,
+      })
+      
       -- デバッグ用: スニペットが読み込まれたか確認
       vim.api.nvim_create_user_command("ReloadSnippets", function()
         loader.load({ paths = { custom_snippets_path } })
