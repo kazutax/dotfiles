@@ -23,6 +23,20 @@ return {
       -- lazy_loadではなく、明示的に読み込む
       local loader = require("luasnip.loaders.from_vscode")
       
+      -- スニペットを再読み込みする関数（クリアしてから読み込む）
+      local function reload_snippets_for_filetype(ft)
+        if ft and ft ~= "" then
+          pcall(function()
+            -- 該当ファイルタイプのスニペットをクリア
+            if ls.snippets[ft] then
+              ls.snippets[ft] = {}
+            end
+            -- スニペットを再読み込み
+            loader.load({ paths = { custom_snippets_path }, include = { ft } })
+          end)
+        end
+      end
+      
       -- スニペットを読み込む（すべてのファイルタイプ）
       pcall(function()
         loader.load({ paths = { custom_snippets_path } })
@@ -43,12 +57,7 @@ return {
         pattern = "*",
         callback = function()
           local ft = vim.bo.filetype
-          if ft and ft ~= "" then
-            pcall(function()
-              -- ファイルタイプを明示的に指定して読み込む
-              loader.load({ paths = { custom_snippets_path }, include = { ft } })
-            end)
-          end
+          reload_snippets_for_filetype(ft)
         end,
       })
       
@@ -70,12 +79,7 @@ return {
         pattern = "*",
         callback = function()
           local ft = vim.bo.filetype
-          if ft and ft ~= "" then
-            pcall(function()
-              -- ファイルタイプを明示的に指定して読み込む
-              loader.load({ paths = { custom_snippets_path }, include = { ft } })
-            end)
-          end
+          reload_snippets_for_filetype(ft)
         end,
       })
       
@@ -91,10 +95,7 @@ return {
               timer:stop()
               timer:close()
               vim.schedule(function()
-                pcall(function()
-                  -- ファイルタイプを明示的に指定して読み込む
-                  loader.load({ paths = { custom_snippets_path }, include = { ft } })
-                end)
+                reload_snippets_for_filetype(ft)
               end)
             end)
           end
@@ -282,11 +283,17 @@ return {
                 -- スニペット展開後に、スニペットを再読み込みして候補を復元（確実に実行されるように）
                 vim.defer_fn(function()
                   local ft = vim.bo.filetype
+                  -- スニペットをクリアしてから再読み込み
                   if ft and ft ~= "" then
                     pcall(function()
+                      local luasnip = require("luasnip")
+                      -- 該当ファイルタイプのスニペットをクリア
+                      if luasnip.snippets[ft] then
+                        luasnip.snippets[ft] = {}
+                      end
+                      -- スニペットを再読み込み
                       local loader = require("luasnip.loaders.from_vscode")
                       local custom_snippets_path = vim.fn.stdpath("config") .. "/snippets"
-                      -- ファイルタイプを明示的に指定して読み込む
                       loader.load({ paths = { custom_snippets_path }, include = { ft } })
                     end)
                   end
