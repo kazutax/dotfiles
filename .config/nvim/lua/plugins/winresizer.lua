@@ -13,8 +13,8 @@ return {
     -- winresizer_start_keyは使用しない（lazy.nvimのkeysで設定）
     vim.g.winresizer_keycode_left = 104   -- hキー（左に拡張）
     vim.g.winresizer_keycode_right = 108  -- lキー（右に拡張）
-    vim.g.winresizer_keycode_down = 0     -- jキー（無効化）
-    vim.g.winresizer_keycode_up = 0       -- kキー（無効化）
+    vim.g.winresizer_keycode_down = 106   -- jキー（下に拡張）
+    vim.g.winresizer_keycode_up = 107     -- kキー（上に拡張）
     vim.g.winresizer_keycode_finish = 13  -- Enterキー（確定）
     vim.g.winresizer_keycode_cancel = 113 -- qキー（キャンセル）
   end,
