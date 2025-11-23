@@ -47,7 +47,12 @@ map("x", "<leader>c", function()
   require("Comment.api").toggle.linewise(vim.fn.visualmode())
 end, { desc = "Toggle comment (visual)" })
 
--- Command + / でコメントアウト（ターミナルアプリの設定で Command + / を無効化する必要があります）
+-- Command + / でコメントアウト
+-- iTerm2 で Command + / を Send Text で " c" (スペース + c) として送信する設定が必要です
+-- これにより、<leader>c が実行され、コメントアウト機能が動作します
+-- 注意: 送信するテキストは " c" (スペース + c) です（<leader> はスペースに設定されています）
+
+-- 念のため <D-/> も残しておく（ターミナルによっては認識される場合がある）
 map("n", "<D-/>", function()
   require("Comment.api").toggle.linewise.current()
 end, { desc = "Toggle comment" })
